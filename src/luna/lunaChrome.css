@@ -36,14 +36,27 @@
   flex-direction: row;
   align-items: stretch;
   width: 100%;
+  /* Cross-size comes from .luna-center-column height (scaled px), not the design-surface layout box */
   min-height: var(--luna-canvas-row-min-h, 1px);
   overflow: hidden;
 }
 
+/* Allow fixed scrim to cover viewport (not clipped by row overflow) */
+.luna-canvas-row.luna-canvas-row--drawer-open {
+  overflow: visible;
+}
+
+/*
+  Viewport-wide dimmer: fixed so it covers gutters + center + footer band while
+  drawer is open; z-index above design surface (40), below docked sidebar (45).
+*/
 .luna-canvas-row-scrim {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 35;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  z-index: 43;
   border: 0;
   padding: 0;
   margin: 0;
@@ -56,7 +69,7 @@
 .luna-space-right {
   flex: 1 1 0;
   min-width: 0;
-  min-height: var(--luna-canvas-row-min-h, 1px);
+  align-self: stretch;
 }
 
 .luna-space-left {
@@ -67,11 +80,17 @@
   background: var(--luna-space-right-bg);
 }
 
-/* Center column: flex slot between gutters; width = scaled canvas footprint in px */
+/*
+  Center column: width = scaled canvas footprint in px.
+  Height = scaled design height in px — not the pre-transform layout box (90rem), which would
+  stretch the row far past the viewport; overflow clips the scaled design surface.
+*/
 .luna-chrome .luna-center-column {
   position: relative;
   flex: 0 0 auto;
   width: var(--luna-center-column-width);
+  height: var(--luna-center-column-height, var(--luna-canvas-row-min-h));
+  align-self: center;
   min-width: 0;
   overflow: hidden;
 }
@@ -91,7 +110,7 @@
 .luna-chrome .luna-design-surface {
   width: var(--canvas-w);
   height: var(--canvas-h);
-  transform: scale(var(--luna-scale));
+  transform: scale(var(--luna-design-surface-scale, var(--luna-scale)));
   transform-origin: 0 0;
   position: relative;
 }
@@ -148,14 +167,11 @@
   background-size: auto;
 }
 
+/* Design-sized inner; width/height/transform from LunaChrome (same scale as main artboard) */
 .luna-root > .luna-footer-slot > .luna-footer-artboard {
   position: absolute;
   left: 0;
   top: 0;
-  width: var(--canvas-w);
-  height: var(--page-row-otf-footer-h);
-  transform: scale(var(--luna-scale));
-  transform-origin: 0 0;
   background: transparent;
   pointer-events: none;
 }

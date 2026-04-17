@@ -1,0 +1,342 @@
+PORT LUNA CHROME + OVERLAY SIDEBAR — HANDOFF FOR ANOTHER CODEBASE / CURSOR
+============================================================================
+
+Purpose
+-------
+This document describes the split architecture used in Waypoint Manager:
+
+1. **LunaChrome (app-owned)** — full page shell: scale, three-column row (left gutter | artboard | right gutter), scrim when the drawer is open, OTF footer band below.
+2. **LunaSidebar (package / submodule)** — **overlay only**: the docked `.sidebar-shell` (drawer + rail + preview UI). It does **not** own the viewport, gutters, artboard, or footer.
+
+Another Cursor instance can use this file to reproduce the same separation in a similar Vite + React project.
+
+
+BIG PICTURE (MENTAL MODEL)
+--------------------------
+- **Shell** = `LunaChrome` + `lunaChrome.css` in the **application** repo.
+- **Sidebar widget** = `LunaSidebar` from **`waypoint-sidebar`** (or a copy of `src/luna-sidebar/*`).
+- The shell sets CSS variables on `.luna-root`: `--luna-scale`, `--luna-shell-design-w`, `--luna-scaled-footer-h`, gutter colors, etc.
+- The sidebar is a **sibling** inside `.luna-canvas-row` (after the right gutter). It is positioned with CSS as **absolute, top-right**, and **scaled** with the same `--luna-scale` as the artboard (see `lunaChrome.css`).
+
+
+DOM SHAPE (WHAT THE SHELL RENDERS)
+----------------------------------
+```text
+.luna-root
+  .luna-scale-stage
+    .luna-chrome
+      .luna-shell
+        .luna-canvas-row
+          [optional] button.luna-canvas-row-scrim   (when drawer expanded)
+          .luna-space-left
+          .artboard-slot
+            .artboard[.artboard--drawer-open?]
+              {children}   ← main app / flow content
+          .luna-space-right
+          {LunaSidebar}    ← single root: .sidebar-shell.UxzaHe.luna-sidebar-dock
+  .luna-footer-slot
+    .luna-footer-artboard
+```
+
+
+FILES IN WAYPOINT MANAGER (REFERENCE IMPLEMENTATION)
+----------------------------------------------------
+| File | Role |
+|------|------|
+| `src/luna/LunaChrome.tsx` | Shell component: ResizeObserver + scale, `expanded` state, footer, render prop for sidebar |
+| `src/luna/lunaChrome.css` | Layout: gutters, artboard slot, scrim, footer, **docked sidebar** overrides |
+| `src/App.tsx` | Wires `LunaChrome` + `LunaSidebar` via `sidebar={({ expanded, onExpandedChange }) => ...}` |
+| `src/index.css` | `#root` flex rules so `.luna-root` can grow taller than viewport (scroll to footer) |
+
+| File (submodule `luna-sidebar/`) | Role |
+|----------------------------------|------|
+| `src/luna-sidebar/LunaSidebar.jsx` | Overlay only: `.sidebar-shell` + drawer + rail |
+| `src/luna-sidebar/LunaSidebar.css` | Sidebar chrome only (no full-page layout) |
+| `src/luna-sidebar/canvasScale.js` | `getCanvasContainScale`, `getOtfFooterDesignHeightPx`, `getSidebarShellDesignWidthPx`, etc. |
+| `src/luna-sidebar/index.js` | Re-exports |
+
+
+STEP 1 — DEPEND ON THE SAME SCALE HELPERS
+-----------------------------------------
+The shell needs the same design constants as the sidebar package. Import from the sidebar package (or duplicate `canvasScale.js` and keep tokens in sync):
+
+- `getViewportSize`
+- `getCanvasContainScale`
+- `getOtfFooterDesignHeightPx`
+- `getSidebarShellDesignWidthPx`
+
+`getSidebarShellDesignWidthPx(expanded)` must match **`--sidebar-collapsed`** and **`--sidebar-expanded`** in `LunaSidebar.css` (`:root`), expressed in **pixels** (rem × 16 at design root).
+
+Current reference values in `canvasScale.js`:
+
+```js
+export const SIDEBAR_COLLAPSED_REM = 4.875;
+export const SIDEBAR_EXPANDED_REM = 49.3125;
+
+export function getSidebarShellDesignWidthPx(expanded) {
+  return (
+    (expanded ? SIDEBAR_EXPANDED_REM : SIDEBAR_COLLAPSED_REM) * DESIGN_ROOT_PX
+  );
+}
+```
+
+
+STEP 2 — COPY `LunaChrome.tsx` INTO THE APP
+-------------------------------------------
+Full reference implementation:
+
+```tsx
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  getCanvasContainScale,
+  getOtfFooterDesignHeightPx,
+  getSidebarShellDesignWidthPx,
+  getViewportSize,
+} from '../../luna-sidebar/src/luna-sidebar/canvasScale.js'
+import './lunaChrome.css'
+
+export type LunaChromeSidebarControls = {
+  expanded: boolean
+  onExpandedChange: (next: boolean) => void
+}
+
+type LunaChromeProps = {
+  children?: ReactNode
+  footerBackgroundUrl?: string
+  sidebar: (controls: LunaChromeSidebarControls) => ReactNode
+}
+
+export function LunaChrome({
+  children,
+  footerBackgroundUrl,
+  sidebar,
+}: LunaChromeProps) {
+  const layoutRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+  const [expanded, setExpanded] = useState(false)
+
+  useLayoutEffect(() => {
+    const el = layoutRef.current
+    if (!el) return
+    const update = () => {
+      const { width, height } = getViewportSize()
+      if (width <= 0 || height <= 0) {
+        setScale(1)
+        return
+      }
+      setScale(getCanvasContainScale(width, height))
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    window.addEventListener('resize', update)
+    const vv = window.visualViewport
+    if (vv) vv.addEventListener('resize', update)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', update)
+      if (vv) vv.removeEventListener('resize', update)
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    const layout = layoutRef.current
+    if (!layout) return
+    const scaledFooterH = getOtfFooterDesignHeightPx() * scale
+    const shellW = getSidebarShellDesignWidthPx(expanded)
+    layout.style.setProperty('--luna-scale', String(scale))
+    layout.style.setProperty('--luna-scaled-footer-h', `${scaledFooterH}px`)
+    layout.style.setProperty('--luna-shell-design-w', `${shellW}px`)
+  }, [scale, expanded])
+
+  const footerSlotStyle =
+    footerBackgroundUrl != null && footerBackgroundUrl !== ''
+      ? { backgroundImage: `url(${footerBackgroundUrl})` }
+      : undefined
+
+  const scaledFooterH = getOtfFooterDesignHeightPx() * scale
+
+  return (
+    <div ref={layoutRef} className="luna-root">
+      <div className="luna-scale-stage">
+        <div className="luna-chrome">
+          <div className="luna-shell">
+            <div className="luna-canvas-row">
+              {expanded ? (
+                <button
+                  type="button"
+                  className="luna-canvas-row-scrim"
+                  aria-label="Close panel"
+                  onClick={() => setExpanded(false)}
+                />
+              ) : null}
+              <div className="luna-space-left" aria-hidden="true" />
+              <div className="artboard-slot">
+                <div
+                  className={`artboard${expanded ? ' artboard--drawer-open' : ''}`}
+                >
+                  {children}
+                </div>
+              </div>
+              <div className="luna-space-right" aria-hidden="true" />
+              {sidebar({ expanded, onExpandedChange: setExpanded })}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="luna-footer-slot"
+        style={{ height: scaledFooterH, ...footerSlotStyle }}
+      >
+        <div className="luna-footer-artboard" aria-hidden="true" />
+      </div>
+    </div>
+  )
+}
+```
+
+Adjust the **import path** to `canvasScale.js` for your folder layout.
+
+
+STEP 3 — COPY `lunaChrome.css` INTO THE APP
+-------------------------------------------
+The stylesheet defines:
+
+- `.luna-root` CSS variables (`--canvas-w`, `--canvas-h`, `--luna-artboard-slot-width`, gutter colors, etc.)
+- Flex row with **`.luna-space-left`** and **`.luna-space-right`** (`flex: 1 1 0`) flanking **`.artboard-slot`**
+- **`.artboard`** with `transform: scale(var(--luna-scale))` and `transform-origin: 0 0`
+- **`.luna-canvas-row-scrim`** (full-row dimmer)
+- **`.luna-footer-slot`** and **`.luna-footer-artboard`**
+- **Dock overrides** for the sidebar when it is a direct child of `.luna-canvas-row`:
+
+```css
+.luna-canvas-row > .sidebar-shell.UxzaHe.luna-sidebar-dock {
+  z-index: 45;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--luna-shell-design-w);
+  height: var(--canvas-h);
+  transform: scale(var(--luna-scale));
+  transform-origin: top right;
+  pointer-events: none;
+}
+
+.luna-canvas-row > .sidebar-shell.UxzaHe.luna-sidebar-dock.m2T_PB {
+  pointer-events: auto;
+}
+```
+
+Copy the full file from the reference repo — do not omit the gutter or artboard rules.
+
+
+STEP 4 — SIDEBAR PACKAGE: OVERLAY-ONLY `LunaSidebar`
+----------------------------------------------------
+`LunaSidebar` must render **only** the docked shell root (no `.luna-root`, no `.artboard-slot`, no footer):
+
+```jsx
+<div className={`sidebar-shell UxzaHe luna-sidebar-dock ${expanded ? "m2T_PB" : ""}`}>
+  <div className="sidebar-host Bf7PXJ">
+    {/* drawer section + rail button — same as package */}
+  </div>
+</div>
+```
+
+Required behavior:
+
+- **`expanded` / `onExpandedChange`**: support **controlled** mode when `expanded` is passed from `LunaChrome`. If `expanded` is omitted, use internal state + `defaultExpanded`.
+- **`initialActiveId`**: when the parent step changes, sync selection (e.g. `useEffect` on `[initialActiveId, items]` calling `normalizeActiveId`).
+- Import **`LunaSidebar.css`** only for sidebar chrome (drawer, rail, preview strip, etc.), not for full-page layout.
+
+
+STEP 5 — WIRE THE APP (`App.tsx` PATTERN)
+-----------------------------------------
+```tsx
+import { LunaSidebar } from '../luna-sidebar/src/luna-sidebar/index.js'
+import { LunaChrome } from './luna/LunaChrome'
+
+<LunaChrome
+  footerBackgroundUrl="/news_bg.jpg"
+  sidebar={({ expanded, onExpandedChange }) => (
+    <LunaSidebar
+      items={...}
+      expanded={expanded}
+      onExpandedChange={onExpandedChange}
+      initialActiveId={step.id}
+      onActiveItemChange={...}
+      railLabel="FLOW"
+    />
+  )}
+>
+  {/* optional: center artboard content */}
+</LunaChrome>
+```
+
+- **`footerBackgroundUrl`**: optional; points at `public/` assets (e.g. `/news_bg.jpg`).
+- **Children of `LunaChrome`**: render **inside** `.artboard` (your flow / stage UI).
+
+
+STEP 6 — ROOT CSS (`#root`)
+---------------------------
+Ensure the document root allows the shell to be taller than one viewport so the footer can scroll into view. Reference pattern:
+
+```css
+#root > * {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#root > .luna-root {
+  flex: 1 0 auto;
+  min-height: min-content;
+  height: auto;
+}
+```
+
+
+STEP 7 — IMPORT ORDER (CSS CASCADE)
+----------------------------------
+Load **sidebar** styles first, then **shell** layout styles, so dock positioning wins:
+
+1. Import path that pulls in `LunaSidebar.css` (via importing `LunaSidebar`).
+2. Import `lunaChrome.css` from `LunaChrome.tsx`.
+
+In `App.tsx`, import **`LunaSidebar` before `LunaChrome`** if both are top-level imports, or rely on `LunaChrome` importing `lunaChrome.css` after the sidebar module has been evaluated (Vite bundles CSS — order is usually fine if `lunaChrome.css` is imported from `LunaChrome.tsx`).
+
+
+STEP 8 — VERIFICATION CHECKLIST
+-------------------------------
+- [ ] Left/right gutters flex and absorb extra viewport width; center column width tracks `--luna-artboard-slot-width`.
+- [ ] Artboard scales with `--luna-scale`; sidebar dock uses the same scale (top-right origin).
+- [ ] Scrim appears when drawer is expanded; click closes drawer.
+- [ ] Footer height matches scaled OTF band; tiled image shows when `footerBackgroundUrl` is set.
+- [ ] `expanded` is controlled from `LunaChrome`; rail toggles via `onExpandedChange`.
+- [ ] Production build passes (`npm run build`).
+
+
+STEP 9 — SUBMODULE WORKFLOW (IF USING `waypoint-sidebar`)
+---------------------------------------------------------
+After changing the sidebar repo:
+
+```powershell
+.\update-sidebar.ps1
+```
+
+Or:
+
+```bash
+git submodule update --remote luna-sidebar
+git add luna-sidebar
+git commit -m "Bump luna-sidebar submodule"
+git push
+```
+
+
+SHORT SUMMARY
+-------------
+- **Layout lives in the app** (`LunaChrome` + `lunaChrome.css`).
+- **Sidebar repo ships only the overlay** (`LunaSidebar` = shell + drawer + rail).
+- **Shell passes** `expanded` / `onExpandedChange` **into** `LunaSidebar` via a **render prop**.
+- **Gutters** = `.luna-space-left` + `.luna-space-right`; **artboard** = `.artboard-slot` > `.artboard` > `children`.
