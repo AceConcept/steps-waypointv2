@@ -2,7 +2,7 @@ import { LunaSidebar } from 'waypoint-sidebar/src/luna-sidebar/index.js'
 import { LunaChrome } from './luna/LunaChrome'
 import WaypointStepsScreen from './steps/WaypointStepsScreen'
 import { FLOW_SIDEBAR_ITEMS } from './flowSidebarItems'
-import { useFlowStep, useFlowStore } from './store/flowStore'
+import { POLAR_SYS_HASH, useFlowStep, useFlowStore } from './store/flowStore'
 import './App.css'
 
 function App() {
@@ -35,7 +35,7 @@ function App() {
       )}
     >
       <div className="luna-stage luna-stage--fill">
-        <WaypointStepsScreen key={stepIndex} />
+        <WaypointStepsScreen polarHash={POLAR_SYS_HASH[step.id]} />
       </div>
     </LunaChrome>
   )

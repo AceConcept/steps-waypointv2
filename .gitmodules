@@ -1,6 +1,3 @@
 [submodule "luna-sidebar"]
 	path = luna-sidebar
 	url = https://github.com/AceConcept/waypoint-sidebar.git
-[submodule "steps-project-slot"]
-	path = steps-project-slot
-	url = https://github.com/AceConcept/steps-project-slot.git

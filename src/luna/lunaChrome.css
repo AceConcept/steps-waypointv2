@@ -39,6 +39,7 @@
   /* Cross-size comes from .luna-center-column height (scaled px), not the design-surface layout box */
   min-height: var(--luna-canvas-row-min-h, 1px);
   overflow: hidden;
+  background: url('/bg-img/bg-img3.jpg') repeat 0 0;
 }
 
 /* Allow fixed scrim to cover viewport (not clipped by row overflow) */
@@ -70,14 +71,15 @@
   flex: 1 1 0;
   min-width: 0;
   align-self: stretch;
+  background: url('/bg-img/bg-img3.jpg') repeat 0 0;
 }
 
 .luna-space-left {
-  background: var(--luna-space-left-bg);
+  background-color: transparent;
 }
 
 .luna-space-right {
-  background: var(--luna-space-right-bg);
+  background-color: transparent;
 }
 
 /*

@@ -10,9 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "stepscreen": "git+https://github.com/AceConcept/steps-project-slot.git#main",
+    "stepscreen": "git+https://github.com/AceConcept/polar-sys.git#main",
     "waypoint-sidebar": "git+https://github.com/AceConcept/waypoint-sidebar.git#main",
     "zustand": "^5.0.12"
   },

@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'luna-sidebar/**', 'steps-project-slot/**']),
+  globalIgnores(['dist', 'luna-sidebar/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

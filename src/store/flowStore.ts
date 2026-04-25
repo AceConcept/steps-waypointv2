@@ -1,10 +1,16 @@
 import { create } from 'zustand'
 import { STEP_DESCRIPTIONS } from '../stepDescriptions'
 
-/** Sidebar / shell step ids — one per step in `steps-project-slot` (upstream). */
-export type FlowStepId = '1' | '2' | '3' | '4' | '5' | '6'
+/** Polar-sys hash routes — one sidebar step per page. */
+export type FlowStepId = 'anomaly' | 'monitor' | 'incident'
 
-const IDS = ['1', '2', '3', '4', '5', '6'] as const satisfies readonly FlowStepId[]
+export const POLAR_SYS_HASH: Record<FlowStepId, string> = {
+  anomaly: '#/anomaly',
+  monitor: '#/monitor',
+  incident: '#/incident',
+}
+
+const IDS = ['anomaly', 'monitor', 'incident'] as const satisfies readonly FlowStepId[]
 
 export const FLOW_STEPS: {
   id: FlowStepId
@@ -12,7 +18,12 @@ export const FLOW_STEPS: {
   body: string
 }[] = IDS.map((id, i) => ({
   id,
-  title: `Step ${id}`,
+  title:
+    id === 'anomaly'
+      ? 'Anomaly'
+      : id === 'monitor'
+        ? 'Monitor'
+        : 'Incident',
   body: STEP_DESCRIPTIONS[i] ?? '',
 }))
 

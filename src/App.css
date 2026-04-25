@@ -204,10 +204,9 @@
 }
 
 /*
-  steps-project-slot embedded in Luna: fill entire .luna-design-surface (not browser viewport).
-  Overrides package use of 100svh on .step-center.
+  polar-sys embedded in Luna: fill the local design surface instead of browser viewport.
 */
-.luna-chrome .luna-stage--fill > .step-screen {
+.luna-chrome .luna-stage--fill > .viewport {
   height: 100%;
   min-height: 100%;
   display: flex;
@@ -215,11 +214,9 @@
   box-sizing: border-box;
 }
 
-.luna-chrome .luna-stage--fill .step-center {
+.luna-chrome .luna-stage--fill > .viewport > .scale-frame {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
-  max-width: none;
-  margin: 0 auto;
   box-sizing: border-box;
 }
