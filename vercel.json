@@ -1,4 +1,4 @@
 {
-  "installCommand": "npm install",
+  "installCommand": "npm ci && npm install stepscreen@git+https://github.com/AceConcept/polar-sys.git#main --no-save",
   "buildCommand": "npm run build"
 }

@@ -19,7 +19,11 @@ export type FlowSidebarItem = {
 function stepImageUrl(n: 1 | 2 | 3): string {
   const file =
     n === 1 ? 'Step-1.png' : n === 2 ? 'Step 2.png' : 'Step 3.png'
-  return `/step_imgs/${encodeURIComponent(file)}`
+  const base = `/step_imgs/${encodeURIComponent(file)}`
+  const v = typeof __STEP_IMG_VER__ !== 'undefined' && __STEP_IMG_VER__
+    ? __STEP_IMG_VER__
+    : ''
+  return v ? `${base}?v=${encodeURIComponent(v)}` : base
 }
 
 export const FLOW_SIDEBAR_ITEMS: FlowSidebarItem[] = [

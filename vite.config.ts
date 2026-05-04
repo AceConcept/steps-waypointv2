@@ -10,7 +10,16 @@ const reactDomRoot = path.resolve(__dirname, 'node_modules/react-dom')
 const waypointSidebarRoot = path.resolve(__dirname, 'node_modules/waypoint-sidebar')
 const stepscreenRoot = path.resolve(__dirname, 'node_modules/stepscreen')
 
+/** Bust CDN/browser cache for `public/` step images on each Vercel deploy (same path, new file). */
+const stepImgCacheKey =
+  process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ||
+  process.env.VERCEL_DEPLOYMENT_ID?.slice(0, 12) ||
+  ''
+
 export default defineConfig({
+  define: {
+    __STEP_IMG_VER__: JSON.stringify(stepImgCacheKey),
+  },
   plugins: [react()],
   resolve: {
     /** `waypoint-sidebar` ships React 18; app uses React 19 — one copy or hooks break → blank UI */
