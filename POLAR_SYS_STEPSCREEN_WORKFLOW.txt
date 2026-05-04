@@ -1,0 +1,85 @@
+================================================================================
+  polar-sys / stepscreen — how versions are pinned and how to bump them
+================================================================================
+
+WHAT "STEPSCREEN" IS
+  The UI shell embeds polar-sys as the npm package named `stepscreen`, installed
+  from GitHub: AceConcept/polar-sys branch `main`. The exact git commit is pinned
+  in package-lock.json (not in package.json, which only records the branch URL).
+
+WHY VERCEL NO LONGER RUNS A SILENT `npm install stepscreen@...#main --no-save`
+  That second install replaced the lockfile-resolved commit with "whatever main
+  is right now" on every deploy, without updating the repo. Production could drift
+  from your laptop (which follows the lockfile after a normal npm install). The
+  site now builds the same stepscreen commit everywhere once the lockfile is
+  committed.
+
+--------------------------------------------------------------------------------
+  LOCAL BUMP (you choose when to move to newer polar-sys)
+--------------------------------------------------------------------------------
+
+  Option A — npm script (cross-platform)
+    npm run update:polarsys
+
+    Then commit package-lock.json (and push). Vercel will pick up the new commit
+    on the next deploy.
+
+  Option B — PowerShell helper (Windows)
+    .\update-polarsys.ps1
+    .\update-polarsys.ps1 -Push
+
+    Stages package-lock.json, commits if it changed, optionally pushes.
+
+--------------------------------------------------------------------------------
+  CI: GITHUB ACTION "Update polar-sys (stepscreen)"
+--------------------------------------------------------------------------------
+
+  File: .github/workflows/update-polarsys.yml
+
+  When to use it
+    Whenever you want a PR that bumps stepscreen to the latest polar-sys main
+    without doing it manually on a machine.
+
+  How to run it
+    1. Open the repo on GitHub → Actions.
+    2. Select workflow "Update polar-sys (stepscreen)".
+    3. Click "Run workflow".
+    4. Leave "dry_run" unchecked to open a PR when the lockfile changes.
+    5. If you only want to see the resolved git URL in the job log, set dry_run
+       to true (no PR is created).
+
+  What it does
+    - Checks out the default branch.
+    - npm install (uses existing lockfile).
+    - npm run update:polarsys (re-resolves stepscreen to latest main).
+    - If package-lock.json changed, opens a PR from branch
+      chore/bump-stepscreen-polarsys with only that file.
+
+  If polar-sys main did not move since the last bump, the lockfile may be
+  unchanged and no PR will be created (that is normal).
+
+  Permissions
+    The default GITHUB_TOKEN is enough for contents: write and pull-requests:
+    write on the same repository. Forks / org policies may restrict this; if
+    the PR step fails, check repository Actions permissions under Settings.
+
+  Optional: run on a schedule
+    To open bump PRs automatically (for example weekly), add under `on:` in
+    `.github/workflows/update-polarsys.yml`:
+
+      schedule:
+        - cron: '0 6 * * 1'
+
+    (Mondays 06:00 UTC.) For scheduled runs there is no `dry_run` input; the PR
+    step always runs when the lockfile changes. You can add a separate job or
+    workflow if you want schedule-only behavior.
+
+--------------------------------------------------------------------------------
+  AFTER MERGING A BUMP PR
+--------------------------------------------------------------------------------
+
+  - Run the app and hit incident/monitor flows if polar-sys touched those screens.
+  - Vercel production deploys from the merged lockfile; no extra install flags
+    are required.
+
+================================================================================

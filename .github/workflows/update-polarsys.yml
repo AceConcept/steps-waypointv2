@@ -1,0 +1,61 @@
+# Bump the git dependency `stepscreen` (polar-sys main) and open a PR when the lockfile changes.
+# See POLAR_SYS_STEPSCREEN_WORKFLOW.txt for when and how to use this.
+
+name: Update polar-sys (stepscreen)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'If true, only print the resolved stepscreen commit (no PR)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: update-polarsys
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install (respect current lockfile)
+        run: npm install --no-audit --no-fund
+
+      - name: Bump stepscreen to latest polar-sys main
+        run: npm run update:polarsys -- --no-audit --no-fund
+
+      - name: Show resolved stepscreen in lockfile
+        run: node -e "const l=require('./package-lock.json'); const s=l.packages&&l.packages['node_modules/stepscreen']; console.log(s&&s.resolved||'not found');"
+
+      - name: Create pull request (skipped when dry_run is true)
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'chore(deps): bump stepscreen (polar-sys) from main'
+          title: 'chore(deps): bump stepscreen (polar-sys) from main'
+          body: |
+            This PR updates `package-lock.json` so `stepscreen` resolves to the latest commit on [polar-sys](https://github.com/AceConcept/polar-sys) `main` (same as `npm run update:polarsys`).
+
+            **Before merging:** skim recent commits on polar-sys and run `npm run build` / smoke the app locally on this branch.
+
+            ---
+            Workflow: `.github/workflows/update-polarsys.yml`
+          branch: chore/bump-stepscreen-polarsys
+          delete-branch: true
+          add-paths: |
+            package-lock.json
