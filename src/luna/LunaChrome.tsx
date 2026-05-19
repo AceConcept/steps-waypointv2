@@ -1,7 +1,14 @@
 ﻿import { AnimatePresence, motion } from 'framer-motion'
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react'
 import { LunaCanvasScaleContext } from 'waypoint-sidebar/src/luna-sidebar/index.js'
-import { useFlowStep } from '../store/flowStore'
+import { POLAR_SYS_HASH, stageEmbedUrl, useFlowStep } from '../store/flowStore'
 import {
   getCanvasContainScale,
   SIDEBAR_COLLAPSED_REM,
@@ -12,6 +19,11 @@ import {
   getLunaScaleViewportSize,
   resetLunaDocumentScale,
 } from './applyLunaDocumentScale'
+import {
+  LunaStageEmbedContext,
+  STAGE_EMBED_HANDOFF_MS,
+} from './LunaStageEmbedContext'
+import { StageEmbedFrame } from './StageEmbedFrame'
 import { WaypointNavbar } from './WaypointNavbar'
 import './lunaChrome.css'
 
@@ -35,7 +47,41 @@ export function LunaChrome({
   const [scale, setScale] = useState(1)
   const [viewport, setViewport] = useState({ width: 0, height: 0 })
   const [expanded, setExpanded] = useState(false)
+  const [fullscreenOpen, setFullscreenOpen] = useState(false)
+  const [stageEmbedVisible, setStageEmbedVisible] = useState(true)
+  const [fullscreenEmbedMounted, setFullscreenEmbedMounted] = useState(false)
   const { step } = useFlowStep()
+  const fullscreenEmbedSrc = stageEmbedUrl(POLAR_SYS_HASH[step.id])
+
+  const openFullscreen = useCallback(() => {
+    setFullscreenOpen(true)
+    setStageEmbedVisible(false)
+  }, [])
+
+  const closeFullscreen = useCallback(() => {
+    setFullscreenEmbedMounted(false)
+    setFullscreenOpen(false)
+  }, [])
+
+  useEffect(() => {
+    if (!fullscreenOpen || stageEmbedVisible) {
+      if (!fullscreenOpen) {
+        setFullscreenEmbedMounted(false)
+      }
+      return
+    }
+    const timer = window.setTimeout(
+      () => setFullscreenEmbedMounted(true),
+      STAGE_EMBED_HANDOFF_MS,
+    )
+    return () => window.clearTimeout(timer)
+  }, [fullscreenOpen, stageEmbedVisible])
+
+  const onFullscreenOverlayExitComplete = useCallback(() => {
+    if (!fullscreenOpen) {
+      setStageEmbedVisible(true)
+    }
+  }, [fullscreenOpen])
 
   useLayoutEffect(() => {
     const update = () => {
@@ -70,12 +116,27 @@ export function LunaChrome({
     layout.style.setProperty('--luna-shell-design-w', `${shellRem}rem`)
   }, [expanded])
 
+  useLayoutEffect(() => {
+    if (!fullscreenOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setFullscreenOpen(false)
+    }
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [fullscreenOpen])
+
   const footerSlotStyle =
     footerBackgroundUrl != null && footerBackgroundUrl !== ''
       ? { backgroundImage: `url(${footerBackgroundUrl})` }
       : undefined
 
   return (
+    <LunaStageEmbedContext.Provider value={{ fullscreenOpen, stageEmbedVisible }}>
     <div ref={layoutRef} className="luna-root">
       {expanded ? (
         <button
@@ -123,7 +184,11 @@ export function LunaChrome({
                   </motion.div>
                 </AnimatePresence>
                 <div className="content-buttons">
-                  <button type="button" className="content-button content-button--fullscreen">
+                  <button
+                    type="button"
+                    className="content-button content-button--fullscreen"
+                    onClick={openFullscreen}
+                  >
                     Full screen
                   </button>
                   <button type="button" className="content-button content-button--case-study">
@@ -150,6 +215,57 @@ export function LunaChrome({
       <div className="luna-footer-slot" style={footerSlotStyle}>
         <div className="luna-footer-artboard" aria-hidden="true" />
       </div>
+
+      <AnimatePresence onExitComplete={onFullscreenOverlayExitComplete}>
+        {fullscreenOpen ? (
+          <motion.div
+            className="luna-fullscreen-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Full screen preview"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.28, ease: 'easeOut' }}
+          >
+            <button
+              type="button"
+              className="luna-fullscreen-overlay__backdrop"
+              aria-label="Close full screen"
+              onClick={closeFullscreen}
+            />
+            <div className="luna-fullscreen-overlay__layout">
+              <div className="luna-fullscreen-overlay__frame">
+                {fullscreenEmbedMounted ? (
+                  <motion.div
+                    className="luna-fullscreen-overlay__embed-wrap"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.28, ease: 'easeOut' }}
+                  >
+                    <StageEmbedFrame
+                      className="luna-fullscreen-overlay__embed"
+                      src={fullscreenEmbedSrc}
+                      title="Full screen steps"
+                    />
+                  </motion.div>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                className="luna-fullscreen-overlay__close"
+                aria-label="Close"
+                onClick={closeFullscreen}
+              >
+                <span className="luna-fullscreen-overlay__close-icon" aria-hidden="true">
+                  ×
+                </span>
+              </button>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
+    </LunaStageEmbedContext.Provider>
   )
 }

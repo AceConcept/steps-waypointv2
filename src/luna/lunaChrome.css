@@ -13,9 +13,9 @@
   align-items: stretch;
   overflow-x: hidden;
   overflow-y: visible;
-  background: #d8d8d8;
-  --luna-space-left-bg: #d8d8d8;
-  --luna-space-right-bg: #d8d8d8;
+  background: #fff;
+  --luna-space-left-bg: url('/bg-img/grey-grbg.png');
+  --luna-space-right-bg: url('/bg-img/grey-grbg.png');
   --luna-horizontal-pad-top: 8.1875rem; /* 131px */
   --luna-horizontal-pad-bottom: 14.3125rem; /* 229px */
   --luna-center-slot: 0.75;
@@ -259,7 +259,6 @@
   height: 100%;
   padding-top: var(--luna-horizontal-pad-top);
   padding-bottom: var(--luna-horizontal-pad-bottom);
-  background: url('/bg-img/bg-img3.jpg') repeat 0 0;
 }
 
 .luna-canvas-row.luna-canvas-row--drawer-open {
@@ -286,8 +285,11 @@
   min-width: 0;
   height: 100%;
   align-self: stretch;
-  background: url('/bg-img/bg-img3.jpg') repeat 0 0;
   background-color: transparent;
+  background-image: var(--luna-space-left-bg);
+  background-position: 50%;
+  background-repeat: repeat-x;
+  background-size: auto 100%;
 }
 
 .luna-space-left {
@@ -584,4 +586,120 @@
   height: var(--page-row-otf-footer-h);
   background: transparent;
   pointer-events: none;
+}
+
+/* Full screen overlay — 16:9 embed + side close control */
+.luna-fullscreen-overlay {
+  --luna-fullscreen-pad: 2rem;
+  --luna-fullscreen-close-w: 3rem;
+  --luna-fullscreen-gap: 1.5rem;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--luna-fullscreen-pad);
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.luna-fullscreen-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.72);
+  cursor: pointer;
+  appearance: none;
+}
+
+.luna-fullscreen-overlay__layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--luna-fullscreen-gap);
+  width: 100%;
+  height: 100%;
+  max-height: calc(100dvh - 2 * var(--luna-fullscreen-pad));
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+/* Height-first 16:9: fill viewport height, shrink only if width would overflow */
+.luna-fullscreen-overlay__frame {
+  flex: 0 1 auto;
+  aspect-ratio: 16 / 9;
+  height: min(
+    calc(100dvh - 2 * var(--luna-fullscreen-pad)),
+    calc(
+      (
+          100vw - 2 * var(--luna-fullscreen-pad) - var(--luna-fullscreen-close-w) -
+            var(--luna-fullscreen-gap)
+        ) * 9 / 16
+    )
+  );
+  width: auto;
+  max-width: calc(
+    100vw - 2 * var(--luna-fullscreen-pad) - var(--luna-fullscreen-close-w) -
+      var(--luna-fullscreen-gap)
+  );
+  background: #fff;
+  box-shadow: 0 1.25rem 3.75rem rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.luna-fullscreen-overlay__embed-wrap {
+  width: 100%;
+  height: 100%;
+}
+
+.luna-fullscreen-overlay__embed {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  background: #fff;
+}
+
+.luna-fullscreen-overlay__close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--luna-fullscreen-close-w);
+  height: var(--luna-fullscreen-close-w);
+  margin: 0;
+  padding: 0;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.35);
+  border-radius: 0;
+  background: rgba(28, 28, 28, 0.92);
+  color: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.luna-fullscreen-overlay__close:hover {
+  filter: brightness(1.12);
+}
+
+.luna-fullscreen-overlay__close:focus-visible {
+  outline: 0.125rem solid rgba(255, 255, 255, 0.65);
+  outline-offset: 0.125rem;
+}
+
+.luna-fullscreen-overlay__close-icon {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1;
+  user-select: none;
 }

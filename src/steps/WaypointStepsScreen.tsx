@@ -1,6 +1,20 @@
+import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef } from 'react'
-import { polarFlowIdFromHash, useFlowStore } from '../store/flowStore'
-import stageImage from '../../注意/cleric.jpg'
+import { StageEmbedFrame } from '../luna/StageEmbedFrame'
+import {
+  STAGE_EMBED_HANDOFF_MS,
+  useLunaStageEmbed,
+} from '../luna/LunaStageEmbedContext'
+import {
+  polarFlowIdFromHash,
+  stageEmbedUrl,
+  useFlowStore,
+} from '../store/flowStore'
+
+const embedTransition = {
+  duration: STAGE_EMBED_HANDOFF_MS / 1000,
+  ease: 'easeOut' as const,
+}
 
 type WaypointStepsScreenProps = {
   polarHash: string
@@ -8,13 +22,8 @@ type WaypointStepsScreenProps = {
 
 export default function WaypointStepsScreen({ polarHash }: WaypointStepsScreenProps) {
   const hostRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (window.location.hash !== polarHash) {
-      window.location.hash = polarHash
-    }
-  }, [polarHash])
+  const { stageEmbedVisible } = useLunaStageEmbed()
+  const embedSrc = stageEmbedUrl(polarHash)
 
   useEffect(() => {
     const onHashChange = () => {
@@ -27,12 +36,34 @@ export default function WaypointStepsScreen({ polarHash }: WaypointStepsScreenPr
   return (
     <div ref={hostRef} className="viewport">
       <div id="artboard" className="artboard">
-        <img
-          className="stepscreen-embed"
-          src={stageImage}
-          alt="Cleric"
-          draggable={false}
-        />
+        <AnimatePresence mode="wait">
+          {stageEmbedVisible ? (
+            <motion.div
+              key="stage-embed"
+              className="stepscreen-embed-shell"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={embedTransition}
+            >
+              <StageEmbedFrame
+                className="stepscreen-embed"
+                src={embedSrc}
+                title="Atencium steps"
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="stage-placeholder"
+              className="stepscreen-embed-placeholder"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={embedTransition}
+              aria-hidden="true"
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

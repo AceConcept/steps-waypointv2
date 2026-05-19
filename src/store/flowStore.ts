@@ -25,6 +25,13 @@ export const POLAR_SYS_HASH: Record<FlowStepId, string> = {
   '6': '#/6',
 }
 
+/** Center-stage iframe origin (polar-sys / steps slot). */
+export const STAGE_EMBED_ORIGIN = 'https://steps-project-slot.vercel.app'
+
+export function stageEmbedUrl(polarHash: string): string {
+  return `${STAGE_EMBED_ORIGIN}${polarHash}`
+}
+
 export const FLOW_STEPS: {
   id: FlowStepId
   title: string
@@ -71,7 +78,9 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     if (typeof window !== 'undefined') {
       const hash = POLAR_SYS_HASH[id]
       if (window.location.hash !== hash) {
-        window.location.hash = hash
+        const url = new URL(window.location.href)
+        url.hash = hash
+        window.history.replaceState(null, '', url)
       }
     }
   },
