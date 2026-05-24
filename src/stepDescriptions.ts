@@ -4,19 +4,19 @@
  */
 
 export const STEP_TITLES = [
-  'Step one',
-  'Step two',
-  'Step three',
-  'Step four',
-  'Step five',
-  'Step six',
+  'Step 1',
+  'Step 2',
+  'Step 3',
+  'Step 4',
+  'Step 5',
+  'Step 6',
 ] as const
 
 export const STEP_DESCRIPTIONS = [
-  'Start here with a brief overview placeholder for this milestone.',
-  'Continue through the guided section with sample content placeholders.',
-  'Review monitoring-style placeholder content for this section.',
-  'Finish with a closing placeholder before you ship real content.',
-  'Explore additional placeholder content for this extended section.',
-  'Wrap up with final placeholder copy for the last milestone.',
+  'The left story column introduces each step—title and description beside the live app in the center, kept in sync as you move through the flow.',
+  'Each step is displayed within the waypoint sidebar. If you are lost you can easily find a waypoint.',
+  'Clicking start will jump you ahead in the flow.',
+  'Move back and forth at anytime.',
+  'No more need for design app prototypes, moving onwards towards code based interactable flows.',
+  'Made with Vite, React, Typescript, JSON.',
 ] as const
