@@ -335,20 +335,12 @@
 }
 
 /* Hero + preview thumbs: step swatch shows behind image while loading */
-.luna-root .wp-sidebar__hero-image {
+.luna-root .wp-sidebar__hero-image,
+.luna-root .wp-sidebar__card-media .wp-sidebar__thumb-image {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.luna-root .wp-sidebar__card-media .wp-sidebar__thumb-image {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 13.75rem;
-  max-height: 7.75rem;
-  object-fit: contain;
 }
 
 /* Preview list: show "-" under step label (see flowSidebarItems.previewDescription) */
