@@ -651,9 +651,10 @@ a.wp-sidebar__info:visited {
 
 .wp-sidebar__card-media {
   flex: 0 0 auto;
-  width: 13.75rem;
-  height: 7.75rem;
-  overflow: hidden;
+  width: fit-content;
+  height: fit-content;
+  max-width: 13.75rem;
+  overflow: visible;
   box-sizing: border-box;
   border: 0;
 }
@@ -715,15 +716,26 @@ a.wp-sidebar__info:visited {
 }
 
 .wp-sidebar__thumb--image {
+  display: block;
+  width: fit-content;
+  height: fit-content;
+  max-width: 13.75rem;
+  margin-left: 1.25rem;
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.wp-sidebar__card.is-active .wp-sidebar__thumb--image {
+  margin-left: 0;
 }
 
 .wp-sidebar__thumb-image {
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: auto;
+  height: auto;
+  max-width: 13.75rem;
+  max-height: 7.75rem;
+  object-fit: contain;
   object-position: center;
   border-radius: 0;
 }
