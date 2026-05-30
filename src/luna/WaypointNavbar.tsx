@@ -6,12 +6,15 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
+import { FLOW_SIDEBAR_ITEMS } from '../flowSidebarItems'
 import {
   FLOW_STEPS,
   useFlowStep,
   useFlowStore,
   type FlowStepId,
 } from '../store/flowStore'
+import { WaypointManagerMenu } from './WaypointManagerMenu'
+import './waypointSidebar.css'
 
 const PRIMARY_NAV_STEPS: {
   className: string
@@ -21,19 +24,10 @@ const PRIMARY_NAV_STEPS: {
   { className: 'step-1', label: 'Step One', flowId: FLOW_STEPS[0]?.id ?? '1' },
   { className: 'step-2', label: 'Step Two', flowId: FLOW_STEPS[1]?.id ?? '2' },
   { className: 'step-3', label: 'Step Three', flowId: FLOW_STEPS[2]?.id ?? '3' },
+  { className: 'step-4', label: 'Step Four', flowId: FLOW_STEPS[3]?.id ?? '4' },
 ]
 
-const STEP_FOUR_DROPDOWN: {
-  className: string
-  label: string
-  flowId: FlowStepId
-}[] = [
-  { className: 'step-4', label: 'Step Four', flowId: '4' },
-  { className: 'step-5', label: 'Step Five', flowId: '5' },
-  { className: 'step-6', label: 'Step Six', flowId: '6' },
-]
-
-const STEP_FOUR_GROUP = new Set<FlowStepId>(['4', '5', '6'])
+const MANAGER_ONLY_STEPS = new Set<FlowStepId>(['5', '6'])
 
 type StepTabProps = {
   className: string
@@ -64,30 +58,30 @@ function StepTab({ className, label, flowId, isCurrent, onSelect }: StepTabProps
 export function WaypointNavbar() {
   const { step } = useFlowStep()
   const goToStepById = useFlowStore((s) => s.goToStepById)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const dropdownPanelId = useId()
+  const [managerOpen, setManagerOpen] = useState(false)
+  const managerRef = useRef<HTMLDivElement>(null)
+  const managerPanelId = useId()
 
-  const isStepFourGroupActive = STEP_FOUR_GROUP.has(step.id)
+  const isManagerGroupActive = MANAGER_ONLY_STEPS.has(step.id)
 
   const selectStep = useCallback(
     (id: FlowStepId) => {
       goToStepById(id)
-      setDropdownOpen(false)
+      setManagerOpen(false)
     },
     [goToStepById],
   )
 
   useEffect(() => {
-    if (!dropdownOpen) return
+    if (!managerOpen) return
     const onPointerDown = (event: PointerEvent) => {
-      const root = dropdownRef.current
+      const root = managerRef.current
       if (root && !root.contains(event.target as Node)) {
-        setDropdownOpen(false)
+        setManagerOpen(false)
       }
     }
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setDropdownOpen(false)
+      if (event.key === 'Escape') setManagerOpen(false)
     }
     document.addEventListener('pointerdown', onPointerDown)
     document.addEventListener('keydown', onKeyDown)
@@ -95,16 +89,16 @@ export function WaypointNavbar() {
       document.removeEventListener('pointerdown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [dropdownOpen])
+  }, [managerOpen])
 
-  const onDropdownTriggerKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+  const onManagerTriggerKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      setDropdownOpen((open) => !open)
+      setManagerOpen((open) => !open)
     }
-    if (event.key === 'ArrowDown' && !dropdownOpen) {
+    if (event.key === 'ArrowDown' && !managerOpen) {
       event.preventDefault()
-      setDropdownOpen(true)
+      setManagerOpen(true)
     }
   }
 
@@ -133,44 +127,46 @@ export function WaypointNavbar() {
             />
           ))}
           <div
-            ref={dropdownRef}
-            className={`step-tab-dropdown${dropdownOpen ? ' is-open' : ''}`}
+            ref={managerRef}
+            className={`step-tab-dropdown navbar-manager-dropdown${
+              managerOpen ? ' is-open' : ''
+            }`}
           >
             <button
               type="button"
-              className={`step-tab step-4 step-tab-dropdown__trigger${
-                isStepFourGroupActive ? ' is-active' : ''
+              className={`step-tab step-manager step-tab-dropdown__trigger${
+                isManagerGroupActive ? ' is-active' : ''
               }`}
-              aria-expanded={dropdownOpen}
+              aria-expanded={managerOpen}
               aria-haspopup="menu"
-              aria-controls={dropdownPanelId}
-              aria-current={isStepFourGroupActive ? 'step' : undefined}
-              onClick={() => setDropdownOpen((open) => !open)}
-              onKeyDown={onDropdownTriggerKeyDown}
+              aria-controls={managerPanelId}
+              aria-current={isManagerGroupActive ? 'step' : undefined}
+              onClick={() => setManagerOpen((open) => !open)}
+              onKeyDown={onManagerTriggerKeyDown}
             >
-              <span className="step-label">
-                <span className="step-label-inner">
-                  <span className="step-diamond" aria-hidden="true" />
-                  <span className="step-label-text">More steps</span>
+              <span className="step-label step-label--manager">
+                <span className="navbar-manager-trigger">
+                  <span className="navbar-manager-label">
+                    <span className="navbar-manager-label-line">Waypoint</span>
+                    <span className="navbar-manager-label-line">Manager</span>
+                  </span>
+                  <span className="navbar-manager-icon" aria-hidden="true">
+                    <span className="navbar-manager-icon__plus" />
+                  </span>
                 </span>
               </span>
             </button>
-            {dropdownOpen ? (
+            {managerOpen ? (
               <div
-                id={dropdownPanelId}
+                id={managerPanelId}
                 className="step-tab-dropdown__panel"
                 role="menu"
               >
-                {STEP_FOUR_DROPDOWN.map(({ className, label, flowId }) => (
-                  <StepTab
-                    key={className}
-                    className={className}
-                    label={label}
-                    flowId={flowId}
-                    isCurrent={step.id === flowId}
-                    onSelect={selectStep}
-                  />
-                ))}
+                <WaypointManagerMenu
+                  items={FLOW_SIDEBAR_ITEMS}
+                  activeId={step.id}
+                  onSelect={selectStep}
+                />
               </div>
             ) : null}
           </div>

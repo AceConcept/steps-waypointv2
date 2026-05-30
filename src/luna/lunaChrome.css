@@ -15,8 +15,10 @@
   overflow-y: visible;
   background: #fff;
   --luna-horizontal-pad-top: 8.1875rem; /* 131px */
-  --luna-horizontal-pad-bottom: 14.3125rem; /* 229px */
-  --luna-center-slot: 0.75;
+  --luna-horizontal-pad-bottom: 10.9375rem; /* 175px */
+  --luna-center-slot: 0.7875; /* 2016×1134 center on 2560×1440 canvas, 16:9 */
+  --luna-center-w: calc(var(--canvas-w) * var(--luna-center-slot));
+  --luna-navbar-step-w: calc(var(--luna-center-w) / 5);
   --luna-content-pad-top: 7rem; /* 112px @ 16px/rem — story column */
 }
 
@@ -117,16 +119,16 @@
 
 .luna-canvas-row > .luna-absolute-pad .navbar-steps {
   display: flex;
-  flex: 0 0 120rem;
-  width: 120rem;
+  flex: 0 0 var(--luna-center-w);
+  width: var(--luna-center-w);
   min-width: 0;
 }
 
-/* Top-row slots: steps 1–3 + step-4 dropdown shell (120rem ÷ 4) */
+/* Top-row slots: steps 1–4 + Waypoint Manager dropdown (center-w ÷ 5) */
 .luna-canvas-row > .luna-absolute-pad .navbar-steps > .step-tab,
 .luna-canvas-row > .luna-absolute-pad .navbar-steps > .step-tab-dropdown {
-  flex: 0 0 30rem;
-  width: 30rem;
+  flex: 0 0 var(--luna-navbar-step-w);
+  width: var(--luna-navbar-step-w);
   height: 100%;
   box-sizing: border-box;
 }
@@ -135,6 +137,10 @@
   position: relative;
   z-index: 1;
   border-right: 0.0625rem solid rgba(228, 228, 228, 0.8); /* #e4e4e4 @ 80% */
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-steps > .navbar-manager-dropdown {
+  border-right: 0;
 }
 
 .luna-canvas-row > .luna-absolute-pad .navbar-steps > .step-tab-dropdown.is-open {
@@ -181,13 +187,13 @@
   border-top: 0;
 }
 
-.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab-dropdown.is-open > .step-tab-dropdown__trigger,
-.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab:hover {
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab-dropdown.is-open > .step-tab-dropdown__trigger:not(.step-manager),
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab:not(.step-manager):hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab[aria-current='step'],
-.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab-dropdown__trigger.is-active {
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab:not(.step-manager)[aria-current='step'],
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab-dropdown__trigger:not(.step-manager).is-active {
   background: rgba(0, 0, 0, 0.06);
 }
 
@@ -245,7 +251,7 @@
 .luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab:hover .step-label-inner,
 .luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab:focus-visible .step-label-inner,
 .luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab[aria-current='step'] .step-label-inner,
-.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab-dropdown__trigger.is-active .step-label-inner {
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab-dropdown__trigger:not(.step-manager).is-active .step-label-inner {
   gap: 1.5rem; /* 24px — title shifts as diamond enters */
   color: #000;
 }
@@ -253,16 +259,95 @@
 .luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab:hover .step-diamond,
 .luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab:focus-visible .step-diamond,
 .luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab[aria-current='step'] .step-diamond,
-.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab-dropdown__trigger.is-active .step-diamond {
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab-dropdown__trigger:not(.step-manager).is-active .step-diamond {
   width: 1rem;
   min-width: 1rem;
   opacity: 1;
   filter: brightness(0);
 }
 
+/* Waypoint Manager trigger */
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab.step-manager {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 5rem 0 0;
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab.step-manager.is-active,
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-tab.step-manager:hover {
+  background: transparent;
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .step-label--manager {
+  justify-content: flex-end;
+  padding-right: 0;
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-manager-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.5rem;
+  color: rgba(0, 0, 0, 0.5);
+  text-align: right;
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-manager-trigger {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-manager-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: #393939;
+  transition: background-color 0.28s ease;
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-manager-icon__plus {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: #d9d9d9;
+  mask: url('/Union.svg') center / contain no-repeat;
+  -webkit-mask: url('/Union.svg') center / contain no-repeat;
+  transition: transform 0.28s ease;
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-manager-dropdown.is-open .navbar-manager-icon {
+  background: #4a4a4a;
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-manager-dropdown.is-open .navbar-manager-icon__plus {
+  transform: rotate(45deg);
+}
+
+.luna-canvas-row > .luna-absolute-pad .navbar-steps .navbar-manager-dropdown .step-tab-dropdown__panel {
+  top: calc(100% - 1.25rem);
+  left: auto;
+  right: 5rem;
+  width: 43.1875rem;
+  max-height: calc(var(--canvas-h) - var(--luna-horizontal-pad-top) - 2rem);
+  overflow: hidden;
+  box-sizing: border-box;
+  background: var(--preview-list-bg, #e4e3e3);
+  box-shadow: 0 0 1.875rem rgba(0, 0, 0, 0.1);
+}
+
 .luna-canvas-row > .luna-absolute-pad .navbar-right {
-  flex: 10 10 var(--sidebar-collapsed); /* 6.125rem = 98px @ 16px/rem */
-  width: var(--sidebar-collapsed);
+  flex: 10 10 0;
+  width: 0;
   min-width: 0;
 }
 
@@ -278,25 +363,6 @@
   height: 100%;
   padding-top: var(--luna-horizontal-pad-top);
   padding-bottom: var(--luna-horizontal-pad-bottom);
-}
-
-.luna-canvas-row.luna-canvas-row--drawer-open {
-  overflow: visible;
-}
-
-.luna-canvas-row-scrim {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  min-height: 100vh;
-  min-height: 100dvh;
-  z-index: 43;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  appearance: none;
-  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .luna-space-left,
@@ -534,16 +600,16 @@
 }
 
 .luna-space-right {
-  flex: 10 10 var(--sidebar-collapsed); /* 6.125rem = 98px @ 16px/rem */
-  width: var(--sidebar-collapsed);
+  flex: 10 10 0;
+  width: 0;
   min-width: 0;
 }
 
-/* Center column: 75% of canvas in rem (scales with root font-size). */
+/* Center column: shared width token (scales with root font-size). */
 .luna-canvas-row .luna-center-column {
   position: relative;
   flex: 0 0 auto;
-  width: calc(var(--canvas-w) * var(--luna-center-slot));
+  width: var(--luna-center-w);
   height: calc(var(--canvas-h) * var(--luna-center-slot));
   align-self: center;
   min-width: 0;
@@ -553,12 +619,6 @@
 .luna-canvas-row .luna-center-column > .luna-design-surface {
   position: relative;
   z-index: 40;
-}
-
-.luna-canvas-row
-  .luna-center-column
-  > .luna-design-surface.luna-design-surface--drawer-open {
-  pointer-events: none;
 }
 
 .luna-canvas-row .luna-design-surface {
@@ -590,34 +650,6 @@
   align-items: stretch;
   justify-content: center;
   overflow: auto;
-}
-
-/* Sidebar: design rem inside scaled row (no separate transform). */
-.luna-canvas-row > .waypoint-sidebar {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: var(--luna-shell-design-w, var(--sidebar-collapsed));
-  height: 100%;
-  z-index: 45;
-  pointer-events: none;
-  box-sizing: border-box;
-  transition: width var(--sidebar-expand-duration, 0.35s) var(--sidebar-expand-easing, ease-out);
-}
-
-.luna-canvas-row > .waypoint-sidebar > .wp-sidebar {
-  z-index: 45;
-  position: absolute;
-  inset: 0;
-  width: 100% !important;
-  height: 100%;
-  transform: none;
-  pointer-events: none;
-  transition: none;
-}
-
-.luna-canvas-row > .waypoint-sidebar > .wp-sidebar.is-expanded {
-  pointer-events: auto;
 }
 
 .luna-root > .luna-footer-slot {

@@ -1,7 +1,5 @@
 import { LunaChrome } from './luna/LunaChrome'
-import { WaypointSidebar } from './luna/WaypointSidebar'
 import WaypointStepsScreen from './steps/WaypointStepsScreen'
-import { FLOW_SIDEBAR_ITEMS } from './flowSidebarItems'
 import { useEffect } from 'react'
 import {
   FLOW_STEP_IDS,
@@ -17,10 +15,8 @@ import {
 import { getStageEmbedOrigin } from './store/stageEmbedConfig'
 import './App.css'
 
-const RAIL_LABEL = 'Waypoint guide'
-
 function App() {
-  const { step, stepIndex } = useFlowStep()
+  const { stepIndex } = useFlowStep()
   const goToStepById = useFlowStore((s) => s.goToStepById)
   const syncStepFromEmbed = useFlowStore((s) => s.syncStepFromEmbed)
 
@@ -59,24 +55,7 @@ function App() {
   }
 
   return (
-    <LunaChrome
-      footerBackgroundUrl="/news_bg.jpg"
-      sidebar={({ expanded, onExpandedChange }) => (
-        <div className="waypoint-sidebar">
-          <WaypointSidebar
-            items={FLOW_SIDEBAR_ITEMS}
-            expanded={expanded}
-            onExpandedChange={onExpandedChange}
-            initialActiveId={step.id}
-            onActiveItemChange={(id) => {
-              const hit = FLOW_SIDEBAR_ITEMS.find((item) => item.id === id)
-              if (hit) goToStepById(hit.id)
-            }}
-            railLabel={RAIL_LABEL}
-          />
-        </div>
-      )}
-    >
+    <LunaChrome footerBackgroundUrl="/news_bg.jpg">
       <WaypointStepsScreen />
     </LunaChrome>
   )

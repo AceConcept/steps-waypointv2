@@ -335,7 +335,13 @@
 }
 
 /* Hero + preview thumbs: step swatch shows behind image while loading */
-.luna-root .wp-sidebar__hero-image,
+.luna-root .wp-sidebar__hero-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .luna-root .wp-sidebar__card-media .wp-sidebar__thumb-image {
   display: block;
   width: 100%;
@@ -343,28 +349,34 @@
   object-fit: cover;
 }
 
-/* Preview list: show "-" under step label (see flowSidebarItems.previewDescription) */
-.luna-canvas-row .wp-sidebar__card .wp-sidebar__card-desc {
-  font-size: 0;
-  line-height: 0;
-  color: transparent;
-  -webkit-line-clamp: unset;
-  overflow: visible;
+/* Waypoint Manager menu (navbar dropdown) */
+.luna-canvas-row .navbar-manager-menu .wp-sidebar__preview-steps {
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
-.luna-canvas-row .wp-sidebar__card .wp-sidebar__card-desc::after {
-  content: '-';
+.luna-canvas-row .navbar-manager-menu .wp-sidebar__card {
+  padding: 0.65rem 1.25rem 0.65rem 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.luna-canvas-row .navbar-manager-menu .wp-sidebar__card:hover {
+  background: #d5d4d4;
+}
+
+.luna-canvas-row .navbar-manager-menu .wp-sidebar__card.is-active:hover {
+  background: var(--sidebar-active);
+}
+
+.luna-canvas-row .navbar-manager-menu .wp-sidebar__card-step {
   font-size: 1.25rem;
-  line-height: 1.35;
-  letter-spacing: -0.04em;
-  color: #404040;
-  display: block;
-}
-
-.luna-canvas-row .wp-sidebar__card-step {
-  font-size: 1.25rem; /* 20px @ 16px/rem */
   font-weight: 400;
   text-transform: none;
+}
+
+.luna-root .navbar-manager-menu .wp-sidebar__thumb,
+.luna-root .navbar-manager-menu .wp-sidebar__thumb-image {
+  border-radius: 0;
 }
 
 .luna-canvas-row .wp-sidebar__start {

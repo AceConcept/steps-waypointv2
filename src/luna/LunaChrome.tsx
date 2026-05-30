@@ -7,13 +7,8 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import { LunaCanvasScaleContext } from 'waypoint-sidebar/src/luna-sidebar/index.js'
 import { stageEmbedUrlForStep, useFlowStep } from '../store/flowStore'
-import {
-  getCanvasContainScale,
-  SIDEBAR_COLLAPSED_REM,
-  SIDEBAR_EXPANDED_REM,
-} from 'waypoint-sidebar/src/luna-sidebar/canvasScale.js'
+import { getCanvasContainScale } from 'waypoint-sidebar/src/luna-sidebar/canvasScale.js'
 import {
   applyLunaDocumentScale,
   getLunaScaleViewportSize,
@@ -28,26 +23,15 @@ import { LunaGutterVideoBg } from './LunaGutterVideoBg'
 import { WaypointNavbar } from './WaypointNavbar'
 import './lunaChrome.css'
 
-export type LunaChromeSidebarControls = {
-  expanded: boolean
-  onExpandedChange: (next: boolean) => void
-}
-
 type LunaChromeProps = {
   children?: ReactNode
   footerBackgroundUrl?: string
-  sidebar: (controls: LunaChromeSidebarControls) => ReactNode
 }
 
-export function LunaChrome({
-  children,
-  footerBackgroundUrl,
-  sidebar,
-}: LunaChromeProps) {
+export function LunaChrome({ children, footerBackgroundUrl }: LunaChromeProps) {
   const layoutRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
   const [viewport, setViewport] = useState({ width: 0, height: 0 })
-  const [expanded, setExpanded] = useState(false)
   const [fullscreenOpen, setFullscreenOpen] = useState(false)
   const [stageEmbedVisible, setStageEmbedVisible] = useState(true)
   const [fullscreenEmbedMounted, setFullscreenEmbedMounted] = useState(false)
@@ -111,13 +95,6 @@ export function LunaChrome({
   }, [])
 
   useLayoutEffect(() => {
-    const layout = layoutRef.current
-    if (!layout) return
-    const shellRem = expanded ? SIDEBAR_EXPANDED_REM : SIDEBAR_COLLAPSED_REM
-    layout.style.setProperty('--luna-shell-design-w', `${shellRem}rem`)
-  }, [expanded])
-
-  useLayoutEffect(() => {
     if (!fullscreenOpen) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setFullscreenOpen(false)
@@ -139,17 +116,7 @@ export function LunaChrome({
   return (
     <LunaStageEmbedContext.Provider value={{ fullscreenOpen, stageEmbedVisible }}>
     <div ref={layoutRef} className="luna-root">
-      {expanded ? (
-        <button
-          type="button"
-          className="luna-canvas-row-scrim"
-          aria-label="Close panel"
-          onClick={() => setExpanded(false)}
-        />
-      ) : null}
-      <div
-        className={`luna-canvas-row${expanded ? ' luna-canvas-row--drawer-open' : ''}`}
-      >
+      <div className="luna-canvas-row">
         <WaypointNavbar />
         <div className="waypoint-horizontal">
           <div className="luna-space-left">
@@ -199,9 +166,7 @@ export function LunaChrome({
             </div>
           </div>
           <div className="luna-center-column">
-            <div
-              className={`luna-design-surface${expanded ? ' luna-design-surface--drawer-open' : ''}`}
-            >
+            <div className="luna-design-surface">
               {children}
             </div>
           </div>
@@ -209,9 +174,6 @@ export function LunaChrome({
             <LunaGutterVideoBg />
           </div>
         </div>
-        <LunaCanvasScaleContext.Provider value={scale}>
-          {sidebar({ expanded, onExpandedChange: setExpanded })}
-        </LunaCanvasScaleContext.Provider>
       </div>
       <div className="luna-footer-slot" style={footerSlotStyle}>
         <div className="luna-footer-artboard" aria-hidden="true" />

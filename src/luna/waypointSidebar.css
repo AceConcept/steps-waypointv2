@@ -640,9 +640,10 @@ a.wp-sidebar__info:visited {
   position: absolute;
   z-index: 1;
   left: 1.25rem;
-  top: 0.75rem;
-  bottom: 0.75rem;
+  top: 50%;
   width: 0.5625rem;
+  height: 7.75rem;
+  transform: translateY(-50%);
   background: #fff;
   border-radius: 0.0625rem;
   box-shadow: 0 0 0 0.0625rem rgba(0, 0, 0, 0.06);
@@ -659,7 +660,7 @@ a.wp-sidebar__info:visited {
 }
 
 .wp-sidebar__card.is-active .wp-sidebar__card-media {
-  margin-left: 3.0625rem; /* 1.25rem inset + 0.5625rem bar + 1.25rem (20px) gap */
+  margin-left: 2.0625rem;
 }
 
 .wp-sidebar__card-body {
@@ -705,8 +706,6 @@ a.wp-sidebar__info:visited {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 1.25rem;
-  width: calc(100% - 1.25rem);
   height: 100%;
   box-sizing: border-box;
   background: transparent;
