@@ -343,6 +343,8 @@
   box-sizing: border-box;
   background: var(--preview-list-bg, #e4e3e3);
   box-shadow: 0 0 1.875rem rgba(0, 0, 0, 0.1);
+  transform-origin: top right;
+  will-change: transform, opacity;
 }
 
 .luna-canvas-row > .luna-absolute-pad .navbar-right {

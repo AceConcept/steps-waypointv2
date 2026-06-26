@@ -6,6 +6,11 @@ html {
   background: #fff;
 }
 
+/* Global shutter: app loads in #root but stays hidden until LoadingScreen releases. */
+html.loadscreen-active #root {
+  visibility: hidden;
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -36,7 +41,7 @@ html {
 
 #root {
   position: relative;
-  z-index: 100001;
+  z-index: 1;
   max-width: 100%;
   margin: 0 auto;
   min-height: 100svh;
@@ -44,6 +49,15 @@ html {
   flex-direction: column;
   box-sizing: border-box;
   background: #fff;
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Default: single flex child fills #root */
@@ -55,6 +69,7 @@ html {
 }
 
 /* Luna: canvas row + footer may grow taller than viewport */
+.app-shell > .luna-root,
 #root > .luna-root {
   flex: 1 0 auto;
   min-height: min-content;

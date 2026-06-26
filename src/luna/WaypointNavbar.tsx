@@ -6,6 +6,7 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { FLOW_SIDEBAR_ITEMS } from '../flowSidebarItems'
 import {
   FLOW_STEPS,
@@ -156,19 +157,25 @@ export function WaypointNavbar() {
                 </span>
               </span>
             </button>
-            {managerOpen ? (
-              <div
-                id={managerPanelId}
-                className="step-tab-dropdown__panel"
-                role="menu"
-              >
-                <WaypointManagerMenu
-                  items={FLOW_SIDEBAR_ITEMS}
-                  activeId={step.id}
-                  onSelect={selectStep}
-                />
-              </div>
-            ) : null}
+            <AnimatePresence>
+              {managerOpen ? (
+                <motion.div
+                  id={managerPanelId}
+                  className="step-tab-dropdown__panel"
+                  role="menu"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <WaypointManagerMenu
+                    items={FLOW_SIDEBAR_ITEMS}
+                    activeId={step.id}
+                    onSelect={selectStep}
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
           </div>
         </div>
         <div className="navbar-right" />

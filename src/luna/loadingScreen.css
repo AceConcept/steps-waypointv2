@@ -1,0 +1,212 @@
+.loadscreen {
+  --loadscreen-bar: #333333;
+  --loadscreen-percent: #000000;
+  --loadscreen-yellow: #f5e642;
+  --loadscreen-muted: #9a9a9a;
+  --loadscreen-progress-end: 3120ms;
+  --loadscreen-sweep-ms: 500ms;
+  --loadscreen-fade-ms: 400ms;
+  --loadscreen-fade-delay: 3870ms;
+
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.loadscreen__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: #ececec;
+  background-image: url('/loadingscrn/ldingBG.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.loadscreen__chrome {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.loadscreen__progress {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.loadscreen__bar-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1rem;
+  height: 100%;
+}
+
+.loadscreen__bar {
+  width: 1rem;
+  min-height: 0;
+  background: var(--loadscreen-bar);
+  transition: height 0.12s ease-out;
+}
+
+.loadscreen__marker {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  transform: translateY(-100%);
+  transition: top 0.12s ease-out;
+  pointer-events: none;
+}
+
+.loadscreen__percent-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem; /* 20px @ 16px/rem */
+  margin-left: 1.5rem;
+}
+
+.loadscreen__tracker {
+  display: block;
+  flex-shrink: 0;
+  width: 0.6875rem; /* 11px */
+  height: 1.875rem; /* 30px */
+  margin-left: 0.625rem; /* 10px @ 16px/rem */
+}
+
+.loadscreen__percent {
+  margin: 0;
+  font-family: Manrope, Inter, system-ui, sans-serif;
+  font-size: 3.25rem; /* 52px @ 16px/rem */
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--loadscreen-percent);
+}
+
+.loadscreen__smollwrd {
+  display: block;
+  flex-shrink: 0;
+  width: 9.15rem; /* 146.4px — 80% of 183px artboard */
+  height: 1.8rem; /* 28.8px — 80% of 36px artboard */
+  margin-left: 0.625rem; /* 10px @ 16px/rem */
+}
+
+.loadscreen__hline {
+  width: 100%;
+  height: 0.375rem;
+  margin-top: 1.375rem; /* 22px @ 16px/rem — was 12px, +10px */
+  background: var(--loadscreen-yellow);
+}
+
+.loadscreen__brand {
+  position: absolute;
+  left: 1304px;
+  top: 604px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.0625rem; /* 17px @ 16px/rem — icons to label */
+}
+
+.loadscreen__icons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 13px;
+}
+
+.loadscreen__icon-img {
+  display: block;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.loadscreen__status {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 1.3125rem; /* 21px @ 16px/rem */
+  font-weight: 400;
+  line-height: 1.2;
+  color: #333333;
+  white-space: nowrap;
+}
+
+.loadscreen__sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-color: #333333;
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+/* Hard-refresh pipeline: entire timeline scheduled from first paint via delay. */
+.loadscreen--sequence .loadscreen__chrome {
+  animation: loadscreen-hide-chrome 0s var(--loadscreen-progress-end) forwards;
+}
+
+.loadscreen--sequence .loadscreen__bg {
+  animation: loadscreen-hide-chrome 0s
+    calc(var(--loadscreen-progress-end) + var(--loadscreen-sweep-ms)) forwards;
+}
+
+.loadscreen--sequence .loadscreen__sweep {
+  animation: loadscreen-sweep var(--loadscreen-sweep-ms) var(--loadscreen-progress-end)
+    cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.loadscreen--sequence {
+  animation: loadscreen-shutter-fade var(--loadscreen-fade-ms) var(--loadscreen-fade-delay)
+    ease-out forwards;
+}
+
+.loadscreen--releasing {
+  pointer-events: none;
+}
+
+@keyframes loadscreen-hide-chrome {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes loadscreen-sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes loadscreen-shutter-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadscreen__bar,
+  .loadscreen__marker {
+    transition: none;
+  }
+
+  .loadscreen--sequence .loadscreen__sweep {
+    animation-duration: 200ms;
+  }
+
+  .loadscreen--sequence {
+    animation-duration: 200ms;
+  }
+}

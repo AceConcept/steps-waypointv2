@@ -17,7 +17,11 @@ const embedTransition = {
   ease: 'easeOut' as const,
 }
 
-export default function WaypointStepsScreen() {
+export default function WaypointStepsScreen({
+  onEmbedReady,
+}: {
+  onEmbedReady?: () => void
+}) {
   const hostRef = useRef<HTMLDivElement>(null)
   const { step } = useFlowStep()
   const { stageEmbedVisible } = useLunaStageEmbed()
@@ -48,6 +52,7 @@ export default function WaypointStepsScreen() {
                 className="stepscreen-embed"
                 src={embedSrc}
                 title="Atencium steps"
+                onEmbedLoad={onEmbedReady}
               />
             </motion.div>
           ) : (
