@@ -190,8 +190,8 @@ export function LoadingScreen({  hold = false,
                 className="loadscreen__smollwrd"
                 src="/loadingscrn/smollwrd.png"
                 alt=""
-                width={146}
-                height={29}
+                width={176}
+                height={35}
                 draggable={false}
               />
             </div>

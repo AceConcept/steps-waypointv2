@@ -91,8 +91,8 @@
 .loadscreen__smollwrd {
   display: block;
   flex-shrink: 0;
-  width: 9.15rem; /* 146.4px — 80% of 183px artboard */
-  height: 1.8rem; /* 28.8px — 80% of 36px artboard */
+  width: 10.98rem; /* 175.68px — 96% of 183px artboard (+20% from prior 80%) */
+  height: 2.16rem; /* 34.56px — 96% of 36px artboard */
   margin-left: 0.625rem; /* 10px @ 16px/rem */
 }
 
