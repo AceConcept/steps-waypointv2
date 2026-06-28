@@ -222,6 +222,7 @@ Do **not** wrap in `<StrictMode>`. Double mount in dev can desync CSS animation 
 
 | Phase | Constant | Default |
 |-------|----------|---------|
+| Background preload | `BG_LOAD_TIMEOUT_MS` | 5000ms max wait (starts on error too) |
 | Progress ease | `PROGRESS_MS` | 3000ms |
 | Pause at 100% | `PAUSE_MS` | 120ms |
 | Sweep duration | viewport-scaled | 400–650ms (`innerWidth × 0.35`, clamped) |
@@ -236,11 +237,14 @@ fadeDelayMs    = progressEndMs + sweepMs + HOLD_MS
 totalMs        = fadeDelayMs + FADE_MS
 ```
 
-**CSS pipeline** (class `loadscreen--sequence`):
+**CSS pipeline** (classes `loadscreen--bg-ready` then `loadscreen--sequence` — both applied when `/loadingscrn/ldingBG.png` has loaded):
+
+See **[LOADSCREEN-BG-BEFORE-BAR.md](./LOADSCREEN-BG-BEFORE-BAR.md)** for the full bg-before-bar transfer guide.
 
 | Time | What happens |
 |------|----------------|
-| `0 → progressEnd` | rAF updates bar height + percent; chrome visible |
+| Before bg ready | Fallback `#ececec` only; chrome hidden |
+| `0 → progressEnd` (after bg ready) | rAF updates bar height + percent; chrome visible |
 | `progressEnd` | Chrome hidden (`loadscreen-hide-chrome` 0s delayed) |
 | `progressEnd → +sweepMs` | `.loadscreen__sweep` `scaleX(0→1)` |
 | `progressEnd + sweepMs` | Background hidden |
@@ -282,7 +286,7 @@ Vertical flex column, `gap: 1.25rem` (20px), `margin-left: 1.5rem`:
 |------|------|
 | Tracker | `tracker-rect.svg`, `0.6875rem × 1.875rem` (11×30), `margin-left: 0.625rem` |
 | Percent | `[{n}%:]` — Manrope 700, `3.25rem` (52px), `letter-spacing: -0.03em` |
-| Tagline PNG | `smollwrd.png`, `9.15rem × 1.8rem` (146×29 display — 80% of 183×36 artboard), `margin-left: 0.625rem` |
+| Tagline PNG | `smollwrd.png`, `10.98rem × 2.16rem` (176×35 display — 96% of 183×36 artboard), `margin-left: 0.625rem` |
 | Yellow line | Full viewport width, `0.375rem` (6px) tall, `margin-top: 1.375rem` (22px below stack) |
 
 **Percent format:** `[{Math.round(progress)}%:]` — square brackets, not parentheses.
@@ -329,15 +333,17 @@ type LoadingScreenProps = {
 ### React responsibilities
 
 - **`useLayoutEffect`**: `lockAppBehindShutter()` on mount (unless `hold`)
-- **`useEffect` (rAF)**: simulate `0 → 100%` over `PROGRESS_MS` with ease `1 - (1-t)^2.2`
-- **`useEffect` (animation)**: listen for `loadscreen-shutter-fade` start/end; unlock on start; `onComplete` on end; timeout fallbacks
+- **`useEffect` (preload)**: `new Image()` for `ldingBG.png`; sets `bgReady`; 5s timeout fallback
+- **`useEffect` (rAF)**: simulate `0 → 100%` over `PROGRESS_MS` — **only after `bgReady`**
+- **`useEffect` (animation)**: listen for `loadscreen-shutter-fade` start/end — only after `bgReady`; unlock on start; `onComplete` on end; timeout fallbacks
 - **`createPortal`**: render to `document.body`
+- **CSS classes**: `loadscreen--bg-ready` reveals chrome; `loadscreen--sequence` starts sweep/fade clock
 - **CSS vars**: pass `--loadscreen-progress-end`, `--loadscreen-sweep-ms`, `--loadscreen-fade-ms`, `--loadscreen-fade-delay`
 
 ### Portal markup structure
 
 ```
-.loadscreen[.loadscreen--sequence]
+.loadscreen[.loadscreen--bg-ready][.loadscreen--sequence]
   .loadscreen__bg
   .loadscreen__chrome
     .loadscreen__progress
@@ -490,4 +496,4 @@ Copy those files verbatim as a starting point, then customize copy, coords, and 
 
 ---
 
-*Waypoint load screen — visual shutter pattern. Last synced with steps-waypoint implementation (CSS-timed sweep, portal, hold preview, rem-sized tagline at 80% artboard).*
+*Waypoint load screen — visual shutter pattern. Last synced with steps-waypoint implementation (CSS-timed sweep, portal, hold preview, rem-sized tagline at 96% artboard).*

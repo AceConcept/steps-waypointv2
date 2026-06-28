@@ -30,6 +30,11 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  visibility: hidden;
+}
+
+.loadscreen--bg-ready .loadscreen__chrome {
+  visibility: visible;
 }
 
 .loadscreen__progress {
