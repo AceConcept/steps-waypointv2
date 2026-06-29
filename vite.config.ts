@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const reactRoot = path.resolve(__dirname, 'node_modules/react')
@@ -19,7 +21,7 @@ export default defineConfig({
   define: {
     __STEP_IMG_VER__: JSON.stringify(stepImgCacheKey),
   },
-  plugins: [react()],
+  plugins: [react(), cloudflare()],
   resolve: {
     /** `waypoint-sidebar` ships React 18; app uses React 19 — one copy or hooks break → blank UI */
     dedupe: ['react', 'react-dom'],
